@@ -20,25 +20,21 @@ export default function CognitoComponent() {
 
   useEffect(() => {
     if (auth.isAuthenticated) {
-      const tenant = window.location.hostname.split(".")[0]; // xyz
-      console.log("tenant: ", tenant);
       // Call your API to set the tenant for the user
-      fetch("/api/set-tenant", {
-        method: "POST",
+      fetch("/api/candidates/12", {
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${auth.user?.id_token}`, // pass ID token
-        },
-        body: JSON.stringify({ tenant }),
+        }
       });
     }
   }, [auth.isAuthenticated]);
 
   const signOutRedirect = async () => {
-    const clientId = "7i1ep58u5qm8vpt3914608vm6f";
+    const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
     const logoutUri = "http://localhost:3000/login"; // must be allowed in Cognito
-    const cognitoDomain =
-      "https://eu-north-1wrickx15x.auth.eu-north-1.amazoncognito.com";
+    const cognitoDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
 
     // 1. Clear local session
     await auth.removeUser();

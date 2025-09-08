@@ -21,29 +21,53 @@ export async function DELETE(
     const token = authHeader.replace("Bearer ", "");
 
     // ✅ Decode JWT to get the user ID (sub)
-    const decoded = jwt.decode(token) as { sub?: string };
+    interface DecodedToken {
+      sub?: string;
+      email?: string;
+      "cognito:groups"?: string[];
+      [key: string]: any;
+    }
+
+    const decoded = jwt.decode(token) as DecodedToken;
     if (!decoded?.sub) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
+    console.log("decoded token:", decoded);
 
     const userId = decoded.sub;
 
-    // ✅ Prepare AVP authorization command
+    // 👥 Groups from profile (cognito:groups may be missing if no groups assigned)
+    const groups = decoded["cognito:groups"] || [];
+
+    // ✅ Build AVP authorization command with token in context
     const command = new IsAuthorizedCommand({
       policyStoreId: process.env.AVP_STORE_ID!,
-      principal: { entityType: "JobApp::User", entityId: userId },
-      action: { actionType: "Action", actionId: "DeleteCandidate" },
-      resource: { entityType: "JobApp::Candidate", entityId: params.id },
+      principal: {
+        entityType: "JobApp::User",
+        entityId: userId,
+      },
+      action: {
+        actionType: "Action",
+        actionId: "DeleteCandidate",
+      },
+      resource: {
+        entityType: "JobApp::Candidate",
+        entityId: params.id,
+      },
+      // 👇 context goes here, NOT inside entities
+      context: {
+        groups: groups,
+      } as unknown as any,
     });
 
     const result = await client.send(command);
 
-    // ❌ Forbidden if AVP denies
+    // Forbidden if AVP denies
     if (result.decision !== "ALLOW") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 👇 Actual delete (mock example — replace with DB call)
+    // Actual delete (mock example — replace with DB call)
     // e.g., await prisma.candidate.delete({ where: { id: params.id } });
 
     return NextResponse.json({
