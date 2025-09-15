@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import {
   VerifiedPermissionsClient,
   IsAuthorizedCommand,
-  ContextDefinition,
 } from "@aws-sdk/client-verifiedpermissions";
 import { fromEnv } from "@aws-sdk/credential-provider-env";
 
@@ -22,7 +21,6 @@ export async function DELETE(
   try {
     const { id } = await context.params;
 
-    console.log("params:", id);
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -30,7 +28,7 @@ export async function DELETE(
 
     const token = authHeader.replace("Bearer ", "");
 
-    // ✅ Decode JWT to get the user ID (sub)
+    // Decode JWT to get the user ID (sub)
     interface DecodedToken {
       sub?: string;
       email?: string;
@@ -45,7 +43,7 @@ export async function DELETE(
     console.log("decoded token:", decoded);
 
     const userId = decoded.sub;
-      // Normalize groups from token
+    // Normalize groups from token
     let groups: string[] = [];
     if (decoded["cognito:groups"]) {
       if (Array.isArray(decoded["cognito:groups"])) {
@@ -54,7 +52,6 @@ export async function DELETE(
         groups = decoded["cognito:groups"].split(",");
       }
     }
-
 
     // Build AVP authorization command with token in context
     const command = new IsAuthorizedCommand({
@@ -105,8 +102,6 @@ export async function DELETE(
     if (result.decision !== "ALLOW") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    // e.g., await prisma.candidate.delete({ where: { id: params.id } });
 
     return NextResponse.json({
       success: true,

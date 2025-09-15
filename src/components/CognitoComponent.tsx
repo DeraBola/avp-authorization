@@ -21,6 +21,20 @@ export default function CognitoComponent() {
   useEffect(() => {
     if (auth.isAuthenticated) {
       // Call your API to set the tenant for the user
+      fetch("/api/permissions", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.user?.id_token}`, // pass ID token
+        }
+      });
+    }
+  }, [auth.isAuthenticated]);
+
+
+useEffect(() => {
+    if (auth.isAuthenticated) {
+      // Call your API to set the tenant for the user
       fetch("/api/candidates/12", {
         method: "DELETE",
         headers: {
@@ -30,6 +44,7 @@ export default function CognitoComponent() {
       });
     }
   }, [auth.isAuthenticated]);
+
 
   const signOutRedirect = async () => {
     const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
