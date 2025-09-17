@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.890.0",
     "@aws-sdk/client-verifiedpermissions": "^3.883.0",
     "@aws-sdk/credential-provider-env": "^3.883.0",
     "@types/jsonwebtoken": "^9.0.10",
