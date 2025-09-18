@@ -52,6 +52,7 @@ export async function DELETE(
         groups = decoded["cognito:groups"].split(",");
       }
     }
+    const now = new Date().toISOString();
 
     // Build AVP authorization command with token in context
     const command = new IsAuthorizedCommand({
@@ -78,19 +79,24 @@ export async function DELETE(
             attributes: {
               sub: { string: decoded.sub },
               email: { string: decoded.email ?? "" },
-              groups: {
-                set: groups.map((g) => ({
-                  entityIdentifier: {
-                    entityType: "JobApp::Role",
-                    entityId: g,
-                  },
-                })),
-              },
+            groups: {
+              set: groups.map((g) => ({
+                entityIdentifier: {
+                  entityType: "JobApp::Role",
+                  entityId: g,
+                },
+              })),
             },
           },
-        ],
-      },
-    });
+        },
+      ],
+    },
+    context: {
+      contextMap: {
+        currentTime: { string: now }
+      }
+    }
+  });
 
     console.log("COMMAND INPUT:", JSON.stringify(command.input, null, 2));
 

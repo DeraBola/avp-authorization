@@ -14,10 +14,10 @@ export default function CognitoComponent() {
   // Precompute user attributes (memoized)
   const formData = useMemo(
     () => ({
-      department: "engineering",
-      status: "active",
-      location: "NG",
-      time: "09:00-17:00", // 24-hour format: 9AM-5PM
+      department: "Customer-support",
+      status: "Active",
+      location: "New York",
+      time: "08:00-14:00", // 24-hour format: 8AM-2PM
     }),
     []
   );
@@ -63,7 +63,7 @@ export default function CognitoComponent() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${auth.user?.id_token}`,
         },
-        body: JSON.stringify({ formData }),
+        body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`Failed to update user attributes`);
       return await res.json();
