@@ -62,6 +62,10 @@ export async function GET(req: NextRequest) {
             attributes: {
               sub: { string: decoded.sub! },
               email: { string: decoded.email ?? "" },
+               department: { string: decoded["custom:department"] ?? "" },
+              location: { string: decoded["custom:Location"] ?? "" },
+              status: { string: decoded["custom:Status"] ?? "" },
+              time: { string: decoded["custom:Time"] ?? "" },
               groups: {
                 set: groups.map((g) => ({
                   entityIdentifier: {
@@ -98,7 +102,7 @@ export async function GET(req: NextRequest) {
     // 3. Send to AVP
     const res = await client.send(command);
 
-   console.log("AVP raw batch result:", JSON.stringify(res, null, 2));
+   console.log("AVP raw permission batch result:", JSON.stringify(res, null, 2));
 
     // 4. Filter for allowed actions
     const allowed = res.results
