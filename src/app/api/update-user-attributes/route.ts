@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const token = authHeader.replace("Bearer ", "");
 
     const decoded: any = jwt.decode(token);
-    console.log("decoded: ", decoded);
+  //  console.log("decoded: ", decoded);
 
     const cognitoUsername = decoded["cognito:username"];
 

@@ -39,49 +39,71 @@ export default function CognitoComponent() {
     }
   }, [auth.user?.id_token]);
 
-  const deleteCandidate = useCallback(async () => {
-    try {
-      const res = await fetch("/api/candidates/12", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.user?.id_token}`,
-        },
-      });
-      if (!res.ok) throw new Error(`Failed to delete candidate`);
-      return await res.json();
-    } catch (err) {
-      console.error("Error deleting candidate:", err);
-    }
-  }, [auth.user?.id_token]);
+  // const deleteCandidate = useCallback(async () => {
+  //   try {
+  //     const res = await fetch("/api/candidates/12", {
+  //       method: "DELETE",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${auth.user?.id_token}`,
+  //       },
+  //     });
+  //     if (!res.ok) throw new Error(`Failed to delete candidate`);
+  //     return await res.json();
+  //   } catch (err) {
+  //     console.error("Error deleting candidate:", err);
+  //   }
+  // }, [auth.user?.id_token]);
 
-  const updateUserAttributes = useCallback(async () => {
+  // const updateUserAttributes = useCallback(async () => {
+  //   try {
+  //     const res = await fetch("/api/update-user-attributes", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${auth.user?.id_token}`,
+  //       },
+  //       body: JSON.stringify(formData),
+  //     });
+  //     if (!res.ok) throw new Error(`Failed to update user attributes`);
+  //     return await res.json();
+  //   } catch (err) {
+  //     console.error("Error updating user attributes:", err);
+  //   }
+  // }, [auth.user?.id_token, formData]);
+
+  // Protect page & trigger data fetching when authenticated
+  
+const authorizeCandidate = useCallback(async () => {
     try {
-      const res = await fetch("/api/update-user-attributes", {
+      const res = await fetch("/api/authorize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${auth.user?.id_token}`,
         },
-        body: JSON.stringify(formData),
+         body: JSON.stringify({
+          action: "ReadCandidate",
+          candidateId: "123",
+        }),
       });
-      if (!res.ok) throw new Error(`Failed to update user attributes`);
+      if (!res.ok) throw new Error(`Failed to authorize candidate`);
       return await res.json();
     } catch (err) {
-      console.error("Error updating user attributes:", err);
+      console.error("Error authorizing candidate:", err);
     }
-  }, [auth.user?.id_token, formData]);
+  }, [auth.user?.id_token]);
 
-  // Protect page & trigger data fetching when authenticated
+
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
       router.push("/login");
     }
 
     if (auth.isAuthenticated) {
-      Promise.all([fetchPermissions(), deleteCandidate(), updateUserAttributes()]);
+      Promise.all([fetchPermissions(), authorizeCandidate()]);
     }
-  }, [auth.isLoading, auth.isAuthenticated, router, fetchPermissions, deleteCandidate, updateUserAttributes]);
+  }, [auth.isLoading, auth.isAuthenticated, router, fetchPermissions]);
 
   // Sign-out helpers
   const signOutRedirect = async () => {

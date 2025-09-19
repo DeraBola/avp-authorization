@@ -1,4 +1,3 @@
-// app/api/candidates/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import {
@@ -7,19 +6,14 @@ import {
 } from "@aws-sdk/client-verifiedpermissions";
 import { fromEnv } from "@aws-sdk/credential-provider-env";
 
-console.log("ALL ENV:", process.env);
-
 const client = new VerifiedPermissionsClient({
   region: process.env.AWS_REGION,
   credentials: fromEnv(),
 });
 
-export async function DELETE(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: NextRequest) {
   try {
-    const { id } = await context.params;
+    const { action, candidateId } = await req.json();
 
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
@@ -28,11 +22,14 @@ export async function DELETE(
 
     const token = authHeader.replace("Bearer ", "");
 
-    // Decode JWT to get the user ID (sub)
     interface DecodedToken {
       sub?: string;
       email?: string;
       "cognito:groups"?: string | string[];
+      "custom:department"?: string;
+      "custom:status"?: string;
+      "custom:location"?: string;
+      "custom:time"?: string;
       [key: string]: any;
     }
 
@@ -40,9 +37,11 @@ export async function DELETE(
     if (!decoded?.sub) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
-  //  console.log("decoded token:", decoded);
+
+    console.log("Decoded token:", decoded);
 
     const userId = decoded.sub;
+
     // Normalize groups from token
     let groups: string[] = [];
     if (decoded["cognito:groups"]) {
@@ -52,9 +51,11 @@ export async function DELETE(
         groups = decoded["cognito:groups"].split(",");
       }
     }
+
+    // ISO string for context
     const now = new Date().toISOString();
 
-    // Build AVP authorization command with token in context
+    // Build AVP authorization command
     const command = new IsAuthorizedCommand({
       policyStoreId: process.env.AVP_STORE_ID!,
       principal: {
@@ -63,65 +64,59 @@ export async function DELETE(
       },
       action: {
         actionType: "JobApp::Action",
-        actionId: "DeleteCandidate", // Just the action name
+        actionId: action || "ReadCandidate",
       },
       resource: {
         entityType: "JobApp::Candidate",
-        entityId: String(id),
+        entityId: candidateId || "candidate-123",
       },
       entities: {
         entityList: [
           {
             identifier: {
               entityType: "JobApp::User",
-              entityId: decoded.sub,
+              entityId: userId,
             },
             attributes: {
               sub: { string: decoded.sub },
               email: { string: decoded.email ?? "" },
-            groups: {
-              set: groups.map((g) => ({
-                entityIdentifier: {
-                  entityType: "JobApp::Role",
-                  entityId: g,
-                },
-              })),
+              department: { string: decoded["custom:department"] ?? "" },
+              location: { string: decoded["custom:Location"] ?? "" },
+              status: { string: decoded["custom:Status"] ?? "" },
+              time: { string: decoded["custom:Time"] ?? "" },
+              groups: {
+                set: groups.map((g) => ({
+                  entityIdentifier: {
+                    entityType: "JobApp::Role",
+                    entityId: g,
+                  },
+                })),
+              },
             },
           },
-        },
-      ],
-    },
-    context: {
-      contextMap: {
-        currentTime: { string: now }
+        ],
       }
-    }
-  });
+    });
 
-   //  console.log("COMMAND INPUT:", JSON.stringify(command.input, null, 2));
+    console.log("AUTHORIZE COMMAND INPUT:", JSON.stringify(command.input, null, 2));
 
     const result = await client.send(command);
 
-  //  console.log("AVP raw result:", JSON.stringify(result, null, 2));
+    console.log("AVP AUTHORIZE raw result:", JSON.stringify(result, null, 2));
 
-    // Forbidden if AVP denies
     if (result.decision !== "ALLOW") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json({
       success: true,
-      message: `Candidate ${id} deleted by user ${userId}`,
+      message: `User ${userId} authorized for ${action}`,
+      decision: result.decision,
     });
   } catch (err: any) {
-  //  console.error("AVP error name:", err.name);
-  //  console.error("AVP error message:", err.message);
-  //  console.error("AVP error stack:", err.stack);
-
-    // console.error(
-    //   "AVP error full:",
-    //   JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
-    // );
+    console.error("AVP error name:", err.name);
+    console.error("AVP error message:", err.message);
+    console.error("AVP error stack:", err.stack);
 
     return NextResponse.json(
       {
@@ -129,7 +124,6 @@ export async function DELETE(
           typeof err === "object" && err !== null && "message" in err
             ? (err as { message?: string }).message
             : "Authorization check failed",
-        details: JSON.stringify(err, null, 2),
       },
       { status: 500 }
     );

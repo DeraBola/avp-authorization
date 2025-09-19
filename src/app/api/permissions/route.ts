@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
     const decoded: DecodedToken = rawDecoded;
 
-    console.log("Decoded token:", decoded);
+   // console.log("Decoded token:", decoded);
 
     // Normalize Cognito groups
     let groups: string[] = [];
@@ -85,20 +85,20 @@ export async function GET(req: NextRequest) {
         },
         resource: {
           entityType: "JobApp::Candidate",
-          entityId: "12",
+          entityId: "123",
         },
       })),
     });
 
-    console.log(
-      "COMMAND PERMISSIONINPUT:",
-      JSON.stringify(command.input, null, 2)
-    );
+    // console.log(
+    //   "COMMAND PERMISSIONINPUT:",
+    //   JSON.stringify(command.input, null, 2)
+    // );
 
     // 3. Send to AVP
     const res = await client.send(command);
 
-    console.log("AVP raw batch result:", JSON.stringify(res, null, 2));
+   console.log("AVP raw batch result:", JSON.stringify(res, null, 2));
 
     // 4. Filter for allowed actions
     const allowed = res.results
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ permissions: allowed ?? [] });
   } catch (err) {
-    console.error("Error fetching permissions:", err);
+   // console.error("Error fetching permissions:", err);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
