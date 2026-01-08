@@ -11,6 +11,8 @@ const client = new VerifiedPermissionsClient({
   credentials: fromEnv(),
 });
 
+// Checks if a logged-in user is allowed to perform an action on a specific candidate.
+
 export async function POST(req: NextRequest) {
   try {
     const { action, candidateId } = await req.json();

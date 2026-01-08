@@ -11,6 +11,7 @@ const client = new CognitoIdentityProviderClient({
   credentials: fromEnv(),
 });
 
+// Purpose: Allows updating custom user attributes in Cognito.
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");

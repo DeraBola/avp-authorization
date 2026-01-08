@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+// src/main.tsx or pages/_app.tsx
+import '@myteam/react-storybook/style.css';
 import "./globals.css";
 import AuthProviderWrapper from "@/components/AuthProviderWrapper";
 

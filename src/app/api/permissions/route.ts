@@ -12,6 +12,8 @@ const client = new VerifiedPermissionsClient({
   credentials: fromEnv(),
 });
 
+
+// Purpose: Fetches a list of allowed actions for a user in batch.
 export async function GET(req: NextRequest) {
   try {
     // 1. Extract and validate JWT

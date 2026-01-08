@@ -4,6 +4,7 @@ import { useAuth } from "react-oidc-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
+import { Button } from "@myteam/react-storybook";
 
 export default function CognitoComponent() {
   const auth = useAuth();
@@ -39,21 +40,21 @@ export default function CognitoComponent() {
     }
   }, [auth.user?.id_token]);
 
-  // const deleteCandidate = useCallback(async () => {
-  //   try {
-  //     const res = await fetch("/api/candidates/12", {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${auth.user?.id_token}`,
-  //       },
-  //     });
-  //     if (!res.ok) throw new Error(`Failed to delete candidate`);
-  //     return await res.json();
-  //   } catch (err) {
-  //     console.error("Error deleting candidate:", err);
-  //   }
-  // }, [auth.user?.id_token]);
+  const deleteCandidate = useCallback(async () => {
+    try {
+      const res = await fetch("/api/candidates/12", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.user?.id_token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Failed to delete candidate`);
+      return await res.json();
+    } catch (err) {
+      console.error("Error deleting candidate:", err);
+    }
+  }, [auth.user?.id_token]);
 
   // const updateUserAttributes = useCallback(async () => {
   //   try {
@@ -73,8 +74,8 @@ export default function CognitoComponent() {
   // }, [auth.user?.id_token, formData]);
 
   // Protect page & trigger data fetching when authenticated
-  
-const authorizeCandidate = useCallback(async () => {
+
+  const authorizeCandidate = useCallback(async () => {
     try {
       const res = await fetch("/api/authorize", {
         method: "POST",
@@ -82,7 +83,7 @@ const authorizeCandidate = useCallback(async () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${auth.user?.id_token}`,
         },
-         body: JSON.stringify({
+        body: JSON.stringify({
           action: "ReadCandidate",
           candidateId: "123",
         }),
@@ -94,21 +95,20 @@ const authorizeCandidate = useCallback(async () => {
     }
   }, [auth.user?.id_token]);
 
-
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
       router.push("/login");
     }
 
     if (auth.isAuthenticated) {
-      Promise.all([fetchPermissions(), authorizeCandidate()]);
+      Promise.all([fetchPermissions(), authorizeCandidate(), deleteCandidate()]);
     }
   }, [auth.isLoading, auth.isAuthenticated, router, fetchPermissions]);
 
   // Sign-out helpers
   const signOutRedirect = async () => {
     const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
-    const logoutUri = "http://localhost:3000/login"; // must match Cognito callback settings
+    const logoutUri = "http://localhost:3002/login"; // must match Cognito callback settings
     const cognitoDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
 
     await auth.removeUser();
@@ -141,6 +141,21 @@ const authorizeCandidate = useCallback(async () => {
     <div className="flex flex-col items-center h-full w-full justify-start">
       <div className="flex w-full justify-center items-center flex-col gap-4 border-2 border-blue-800 p-4 rounded-xl">
         <pre>Hello: {auth.user?.profile?.name}</pre>
+        <Button
+          variant="destructive"
+          onClick={() => alert("Button from Bitbucket clicked!")}
+          loading={true}
+          size="lg"
+        >
+          Hi im Button from Bitbucket
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => alert("Button from Bitbucket clicked!")}
+          size="sm"
+        >
+          Hi im Button from Bitbucket
+        </Button>
         <Image
           src={auth.user?.profile?.picture || "/default-avatar.png"}
           alt="User Avatar"

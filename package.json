@@ -12,6 +12,7 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.890.0",
     "@aws-sdk/client-verifiedpermissions": "^3.883.0",
     "@aws-sdk/credential-provider-env": "^3.883.0",
+    "@myteam/react-storybook": "bitbucket:inscale-dev/react-ui-components#develop",
     "@types/jsonwebtoken": "^9.0.10",
     "jsonwebtoken": "^9.0.2",
     "kill-port": "^2.0.1",
